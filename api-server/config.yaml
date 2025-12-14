@@ -4,6 +4,22 @@ log_level: "info"
 
 database_url: "postgres://ritmo:ritmo_dev_password@localhost:5432/ritmo?sslmode=disable"
 
+# GitOps Configuration
+gitops:
+  enabled: false  # Set to true to enable GitOps mode
+  repository:
+    url: ""  # https://github.com/myorg/ritmo-config
+    branch: "main"
+    path: "/"
+  authentication:
+    type: "token"  # token, ssh, github_app
+    token: ""  # Use environment variable: ${RITMO_GITOPS_TOKEN}
+  sync:
+    interval: 60  # seconds
+    auto_apply: true
+    dry_run: false
+    prune: true  # Delete resources not in Git
+
 cors_allowed_origins:
   - "http://localhost:3000"
   - "http://localhost:5173"

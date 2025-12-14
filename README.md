@@ -58,6 +58,13 @@ Ritmo is a highly scalable, plugin-based CI/CD platform designed to overcome the
 - **External CD integration**: Native support for GitOps tools (ArgoCD, Flux)
 - **Artifact versioning**: Track and promote artifacts across environments
 
+### GitOps Configuration
+- **Declarative configuration**: Define jobs, credentials, webhooks in Git
+- **Automatic synchronization**: Continuous sync from Git repository
+- **Version control**: Full audit trail of configuration changes
+- **Pull Request workflow**: Review and approve configuration changes
+- **Encrypted secrets**: Secure credential management with external secret managers
+
 ### Plugin Architecture
 - **Binary plugins**: Native performance, no JVM overhead
 - **Hot-reloadable**: Update plugins without server restart
@@ -89,6 +96,17 @@ cd web-ui
 npm install
 npm run dev
 ```
+
+## Documentation
+
+- [Getting Started Guide](GETTING_STARTED.md)
+- [Architecture Overview](ARCHITECTURE.md)
+- [Enterprise Security & Quality Gates](docs/ENTERPRISE-SECURITY.md)
+- [GitOps Configuration](docs/GITOPS-CONFIG.md)
+- [CI/CD Separation Pattern](docs/CI-CD-SEPARATION.md)
+- [Plugin Development](plugin-sdk/README.md)
+- [API Documentation](api-server/README.md)
+- [Worker Agent Setup](worker-agent/README.md)
 
 ## Project Status
 

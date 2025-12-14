@@ -47,4 +47,7 @@ logs: ## Show logs from all services
 status: ## Show status of all services
 	@docker-compose ps
 
+# Enterprise targets
+include Makefile.enterprise
+
 .DEFAULT_GOAL := help

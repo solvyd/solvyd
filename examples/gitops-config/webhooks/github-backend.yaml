@@ -1,0 +1,21 @@
+apiVersion: ritmo.dev/v1
+kind: Webhook
+metadata:
+  name: github-backend-webhook
+  labels:
+    managed-by: gitops
+spec:
+  job: backend-service
+  
+  source: github
+  secret_token_credential: github-webhook-secret
+  
+  events:
+    - push
+    - pull_request
+    - release
+  
+  filters:
+    branch_pattern: "^(main|develop|release/.*)$"
+  
+  enabled: true

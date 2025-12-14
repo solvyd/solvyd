@@ -2,32 +2,37 @@
 
 ## System Overview
 
-```
-┌─────────────────────────────────────────────────────────────────┐
-│                         Load Balancer                            │
-└─────────────────────────────────────────────────────────────────┘
-                               │
-          ┌────────────────────┼────────────────────┐
-          │                    │                    │
-    ┌─────▼──────┐      ┌─────▼──────┐      ┌─────▼──────┐
-    │ API Server │      │ API Server │      │ API Server │
-    │  Instance  │      │  Instance  │      │  Instance  │
-    └─────┬──────┘      └─────┬──────┘      └─────┬──────┘
-          │                    │                    │
-          └────────────────────┼────────────────────┘
-                               │
-                    ┌──────────▼──────────┐
-                    │   PostgreSQL DB     │
-                    │  (Jobs, Builds,     │
-                    │   Workers, etc.)    │
-                    └──────────┬──────────┘
-                               │
-          ┌────────────────────┼────────────────────┐
-          │                    │                    │
-    ┌─────▼──────┐      ┌─────▼──────┐      ┌─────▼──────┐
-    │  Worker    │      │  Worker    │      │  Worker    │
-    │   Agent    │      │   Agent    │      │   Agent    │
-    └────────────┘      └────────────┘      └────────────┘
+```mermaid
+flowchart TD
+    LB[Load Balancer]
+    API1[API Server Instance 1]
+    API2[API Server Instance 2]
+    API3[API Server Instance 3]
+    DB[(PostgreSQL DB<br/>Jobs, Builds,<br/>Workers, etc.)]
+    W1[Worker Agent 1]
+    W2[Worker Agent 2]
+    W3[Worker Agent 3]
+    
+    LB --> API1
+    LB --> API2
+    LB --> API3
+    
+    API1 --> DB
+    API2 --> DB
+    API3 --> DB
+    
+    DB --> W1
+    DB --> W2
+    DB --> W3
+    
+    style LB fill:#4A90E2,stroke:#2E5C8A,color:#fff
+    style DB fill:#50C878,stroke:#2E7D4E,color:#fff
+    style API1 fill:#9B59B6,stroke:#6C3483,color:#fff
+    style API2 fill:#9B59B6,stroke:#6C3483,color:#fff
+    style API3 fill:#9B59B6,stroke:#6C3483,color:#fff
+    style W1 fill:#F39C12,stroke:#C87F0A,color:#fff
+    style W2 fill:#F39C12,stroke:#C87F0A,color:#fff
+    style W3 fill:#F39C12,stroke:#C87F0A,color:#fff
 ```
 
 ## Component Details
@@ -190,14 +195,37 @@ type Plugin interface {
 
 ### Artifact Promotion Flow
 
-```
-CI Build → Artifact Storage → CD Pipeline
-  ↓            ↓                  ↓
-Dev Build   Tag: dev          Deploy to Dev
-  ↓            ↓                  ↓
-Tests Pass  Promote: staging   Deploy to Staging
-  ↓            ↓                  ↓
-Approved    Promote: prod      Deploy to Production
+```mermaid
+flowchart LR
+    subgraph CI["CI Phase"]
+        B1[CI Build]
+        B2[Dev Build]
+        B3[Tests Pass]
+        B4[Approved]
+    end
+    
+    subgraph Storage["Artifact Storage"]
+        S1[Artifact Storage]
+        S2[Tag: dev]
+        S3[Promote: staging]
+        S4[Promote: prod]
+    end
+    
+    subgraph CD["CD Phase"]
+        D1[CD Pipeline]
+        D2[Deploy to Dev]
+        D3[Deploy to Staging]
+        D4[Deploy to Production]
+    end
+    
+    B1 --> S1 --> D1
+    B2 --> S2 --> D2
+    B3 --> S3 --> D3
+    B4 --> S4 --> D4
+    
+    style CI fill:#E8F4F8,stroke:#4A90E2
+    style Storage fill:#FFF4E6,stroke:#F39C12
+    style CD fill:#E8F5E9,stroke:#50C878
 ```
 
 ### External CD Integration

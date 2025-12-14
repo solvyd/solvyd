@@ -124,11 +124,24 @@ go build -o my-plugin
 ## Example Plugins
 
 See the `examples/` directory for reference implementations:
+
+### SCM Plugins
 - `git-scm/` - Git SCM plugin
-- `maven-build/` - Maven build plugin
-- `s3-artifact/` - S3 artifact storage plugin
+
+### Notification Plugins
 - `slack-notify/` - Slack notification plugin
-- `k8s-deploy/` - Kubernetes deployment plugin
+
+### Security Plugins (Enterprise)
+- `sonarqube-sast/` - SonarQube static analysis (code quality, bugs, vulnerabilities, duplications)
+- `trivy-container-scan/` - Container image vulnerability scanning
+- `owasp-zap-dast/` - Dynamic application security testing
+- `owasp-dependency-check/` - Dependency vulnerability scanning
+- `license-compliance/` - License compliance and attribution
+
+### Test Plugins
+- `junit-test-reporter/` - JUnit/TestNG test result parser and reporter
+
+For comprehensive enterprise security setup, see [Enterprise Security Guide](../docs/ENTERPRISE-SECURITY.md).
 
 ## Plugin Configuration
 

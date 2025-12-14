@@ -1,0 +1,68 @@
+apiVersion: ritmo.dev/v1
+kind: Job
+metadata:
+  name: backend-service
+  labels:
+    team: platform
+    environment: production
+    managed-by: gitops
+spec:
+  description: Backend microservice
+  
+  scm:
+    type: github
+    url: https://github.com/example/backend-service
+    branch: main
+    credentials: github-pat
+  
+  build:
+    type: maven
+    config:
+      goals: [clean, package, verify]
+      jdk_version: "17"
+  
+  environment:
+    JAVA_HOME: /usr/lib/jvm/java-17
+    MAVEN_OPTS: "-Xmx2g"
+  
+  triggers:
+    - type: webhook
+      events: [push, pull_request]
+      branch_filter: "^(main|develop)$"
+    
+    - type: cron
+      schedule: "0 2 * * *"
+  
+  pipeline:
+    stages:
+      - name: build
+        steps:
+          - plugin: maven-build
+            config:
+              goals: [clean, compile]
+      
+      - name: test
+        depends_on: [build]
+        steps:
+          - plugin: maven-test
+            config:
+              goals: [test]
+      
+      - name: package
+        depends_on: [test]
+        steps:
+          - plugin: maven-build
+            config:
+              goals: [package]
+      
+      - name: notify
+        depends_on: [package]
+        always_run: true
+        steps:
+          - plugin: slack-notify
+            config:
+              channel: "#builds"
+  
+  timeout: 30
+  max_retries: 2
+  enabled: true
