@@ -1,0 +1,26 @@
+# Ritmo API Server Configuration
+port: 8080
+log_level: "info"
+
+database_url: "postgres://ritmo:ritmo_dev_password@localhost:5432/ritmo?sslmode=disable"
+
+cors_allowed_origins:
+  - "http://localhost:3000"
+  - "http://localhost:5173"
+
+worker_heartbeat_timeout: 60  # seconds
+max_workers_per_job: 10
+scheduler_tick_interval: 5    # seconds
+max_concurrent_builds: 100
+
+plugin_directory: "./plugins"
+
+artifact_storage_type: "s3"
+artifact_storage_config:
+  endpoint: "http://localhost:9000"
+  access_key: "ritmo"
+  secret_key: "ritmo_minio_password"
+  bucket: "ritmo-artifacts"
+  region: "us-east-1"
+
+jwt_secret: "dev-secret-change-in-production"

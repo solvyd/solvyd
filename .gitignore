@@ -1,0 +1,59 @@
+# Binaries
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+bin/
+dist/
+
+# Test binary
+*.test
+
+# Go workspace file
+go.work
+
+# Build artifacts
+build/
+target/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Dependencies
+node_modules/
+vendor/
+
+# Environment
+.env
+.env.local
+*.pem
+*.key
+secrets/
+
+# Logs
+*.log
+logs/
+
+# Database
+*.db
+*.sqlite
+postgres-data/
+
+# Temporary files
+tmp/
+temp/
+*.tmp
+
+# Plugin binaries
+plugins/*.so
+plugins/*.dll
+plugins/*.wasm
