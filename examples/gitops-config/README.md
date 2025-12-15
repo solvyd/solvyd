@@ -1,6 +1,6 @@
-# Ritmo GitOps Configuration Example
+# Solvyd GitOps Configuration Example
 
-This is an example GitOps configuration repository for Ritmo.
+This is an example GitOps configuration repository for Solvyd.
 
 ## Structure
 
@@ -17,16 +17,16 @@ This is an example GitOps configuration repository for Ritmo.
 
 1. Fork this repository
 2. Customize the configurations for your environment
-3. Configure Ritmo to use this repository:
+3. Configure Solvyd to use this repository:
 
 ```bash
-export RITMO_GITOPS_ENABLED=true
-export RITMO_GITOPS_REPO_URL=https://github.com/yourorg/ritmo-config
-export RITMO_GITOPS_REPO_BRANCH=main
-export RITMO_GITOPS_TOKEN=ghp_your_token_here
+export SOLVYD_GITOPS_ENABLED=true
+export SOLVYD_GITOPS_REPO_URL=https://github.com/yourorg/solvyd-config
+export SOLVYD_GITOPS_REPO_BRANCH=main
+export SOLVYD_GITOPS_TOKEN=ghp_your_token_here
 ```
 
-4. Start Ritmo - it will automatically sync configuration from this repository
+4. Start Solvyd - it will automatically sync configuration from this repository
 
 ## Security
 

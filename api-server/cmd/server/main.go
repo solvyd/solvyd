@@ -14,12 +14,12 @@ import (
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
 
-	"github.com/vrenjith/ritmo/api-server/internal/config"
-	"github.com/vrenjith/ritmo/api-server/internal/database"
-	"github.com/vrenjith/ritmo/api-server/internal/handlers"
-	"github.com/vrenjith/ritmo/api-server/internal/metrics"
-	"github.com/vrenjith/ritmo/api-server/internal/scheduler"
-	"github.com/vrenjith/ritmo/api-server/internal/worker"
+	"github.com/solvyd/solvyd/api-server/internal/config"
+	"github.com/solvyd/solvyd/api-server/internal/database"
+	"github.com/solvyd/solvyd/api-server/internal/handlers"
+	"github.com/solvyd/solvyd/api-server/internal/metrics"
+	"github.com/solvyd/solvyd/api-server/internal/scheduler"
+	"github.com/solvyd/solvyd/api-server/internal/worker"
 )
 
 func main() {

@@ -1,6 +1,6 @@
-# Ritmo Plugin SDK
+# Solvyd Plugin SDK
 
-Plugin SDK for developing Ritmo plugins.
+Plugin SDK for developing Solvyd plugins.
 
 ## Plugin Types
 
@@ -72,7 +72,7 @@ type Result struct {
 ```go
 package main
 
-import "github.com/vrenjith/ritmo/plugin-sdk/pkg/sdk"
+import "github.com/solvyd/solvyd/plugin-sdk/pkg/sdk"
 
 type MyPlugin struct {
     config map[string]interface{}
@@ -121,9 +121,9 @@ go build -buildmode=plugin -o my-plugin.so
 go build -o my-plugin
 ```
 
-## Example Plugins
+## Core Plugins
 
-See the `examples/` directory for reference implementations:
+See the `plugins/` directory for official plugin implementations:
 
 ### SCM Plugins
 - `git-scm/` - Git SCM plugin
@@ -197,7 +197,7 @@ func TestMyPlugin(t *testing.T) {
 ## Publishing
 
 Plugins can be published to:
-1. Ritmo Plugin Marketplace (future)
+1. Solvyd Plugin Marketplace (future)
 2. GitHub releases
 3. Private repositories
 4. Container registries (for containerized plugins)

@@ -14,7 +14,7 @@ enterprise-start:
 	@echo "  Trivy Server:  http://localhost:8082"
 	@echo "  Grafana:       http://localhost:3001 (admin/admin)"
 	@echo "  Prometheus:    http://localhost:9091"
-	@echo "  Vault:         http://localhost:8200 (token: ritmo-dev-token)"
+	@echo "  Vault:         http://localhost:8200 (token: solvyd-dev-token)"
 	@echo ""
 	@echo "Waiting for services to be healthy..."
 	@sleep 10
@@ -36,12 +36,12 @@ enterprise-ps:
 # Build enterprise plugins
 build-enterprise-plugins:
 	@echo "Building enterprise security plugins..."
-	cd plugin-sdk/examples/sonarqube-sast && go build -o ../../../plugins/sonarqube-sast
-	cd plugin-sdk/examples/trivy-container-scan && go build -o ../../../plugins/trivy-container-scan
-	cd plugin-sdk/examples/owasp-zap-dast && go build -o ../../../plugins/owasp-zap-dast
-	cd plugin-sdk/examples/owasp-dependency-check && go build -o ../../../plugins/owasp-dependency-check
-	cd plugin-sdk/examples/junit-test-reporter && go build -o ../../../plugins/junit-test-reporter
-	cd plugin-sdk/examples/license-compliance && go build -o ../../../plugins/license-compliance
+	cd plugin-sdk/plugins/sonarqube-sast && go build -o ../../../plugins/sonarqube-sast
+	cd plugin-sdk/plugins/trivy-container-scan && go build -o ../../../plugins/trivy-container-scan
+	cd plugin-sdk/plugins/owasp-zap-dast && go build -o ../../../plugins/owasp-zap-dast
+	cd plugin-sdk/plugins/owasp-dependency-check && go build -o ../../../plugins/owasp-dependency-check
+	cd plugin-sdk/plugins/junit-test-reporter && go build -o ../../../plugins/junit-test-reporter
+	cd plugin-sdk/plugins/license-compliance && go build -o ../../../plugins/license-compliance
 	@echo "Enterprise plugins built successfully in ./plugins/"
 
 # Full enterprise setup

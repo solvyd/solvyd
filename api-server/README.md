@@ -1,6 +1,6 @@
-# Ritmo API Server
+# Solvyd API Server
 
-The core API server for Ritmo CI/CD platform.
+The core API server for Solvyd CI/CD platform.
 
 ## Features
 

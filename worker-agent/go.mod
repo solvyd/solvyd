@@ -1,4 +1,4 @@
-module github.com/vrenjith/ritmo/worker-agent
+module github.com/solvyd/solvyd/worker-agent
 
 go 1.21
 

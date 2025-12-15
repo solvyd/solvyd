@@ -1,4 +1,4 @@
-apiVersion: ritmo.dev/v1
+apiVersion: solvyd.dev/v1
 kind: Webhook
 metadata:
   name: github-backend-webhook

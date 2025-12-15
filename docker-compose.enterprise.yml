@@ -2,16 +2,16 @@ version: '3.8'
 
 services:
   # ================================================
-  # Core Ritmo Infrastructure
+  # Core Solvyd Infrastructure
   # ================================================
   
   postgres:
     image: postgres:15-alpine
-    container_name: ritmo-postgres
+    container_name: solvyd-postgres
     environment:
-      POSTGRES_DB: ritmo
-      POSTGRES_USER: ritmo
-      POSTGRES_PASSWORD: ritmo_dev_password
+      POSTGRES_DB: solvyd
+      POSTGRES_USER: solvyd
+      POSTGRES_PASSWORD: solvyd_dev_password
     ports:
       - "5432:5432"
     volumes:
@@ -19,22 +19,22 @@ services:
       - ./database/schema.sql:/docker-entrypoint-initdb.d/01-schema.sql
       - ./database/seed.sql:/docker-entrypoint-initdb.d/02-seed.sql
     networks:
-      - ritmo-network
+      - solvyd-network
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ritmo"]
+      test: ["CMD-SHELL", "pg_isready -U solvyd"]
       interval: 10s
       timeout: 5s
       retries: 5
 
   redis:
     image: redis:7-alpine
-    container_name: ritmo-redis
+    container_name: solvyd-redis
     ports:
       - "6379:6379"
     volumes:
       - redis-data:/data
     networks:
-      - ritmo-network
+      - solvyd-network
     healthcheck:
       test: ["CMD", "redis-cli", "ping"]
       interval: 10s
@@ -43,18 +43,18 @@ services:
 
   minio:
     image: minio/minio:latest
-    container_name: ritmo-minio
+    container_name: solvyd-minio
     command: server /data --console-address ":9001"
     environment:
-      MINIO_ROOT_USER: ritmo
-      MINIO_ROOT_PASSWORD: ritmo_minio_password
+      MINIO_ROOT_USER: solvyd
+      MINIO_ROOT_PASSWORD: solvyd_minio_password
     ports:
       - "9000:9000"
       - "9001:9001"
     volumes:
       - minio-data:/data
     networks:
-      - ritmo-network
+      - solvyd-network
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
       interval: 30s
@@ -67,7 +67,7 @@ services:
 
   sonarqube:
     image: sonarqube:lts-community
-    container_name: ritmo-sonarqube
+    container_name: solvyd-sonarqube
     depends_on:
       - postgres-sonar
     environment:
@@ -81,7 +81,7 @@ services:
       - sonarqube-extensions:/opt/sonarqube/extensions
       - sonarqube-logs:/opt/sonarqube/logs
     networks:
-      - ritmo-network
+      - solvyd-network
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:9000/api/system/status"]
       interval: 30s
@@ -90,7 +90,7 @@ services:
 
   postgres-sonar:
     image: postgres:15-alpine
-    container_name: ritmo-postgres-sonar
+    container_name: solvyd-postgres-sonar
     environment:
       POSTGRES_DB: sonar
       POSTGRES_USER: sonar
@@ -98,7 +98,7 @@ services:
     volumes:
       - postgres-sonar-data:/var/lib/postgresql/data
     networks:
-      - ritmo-network
+      - solvyd-network
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U sonar"]
       interval: 10s
@@ -111,14 +111,14 @@ services:
 
   trivy-server:
     image: aquasec/trivy:latest
-    container_name: ritmo-trivy-server
+    container_name: solvyd-trivy-server
     command: server --listen 0.0.0.0:8080
     ports:
       - "8082:8080"
     volumes:
       - trivy-cache:/root/.cache
     networks:
-      - ritmo-network
+      - solvyd-network
     healthcheck:
       test: ["CMD", "wget", "--spider", "-q", "http://localhost:8080/healthz"]
       interval: 30s
@@ -131,14 +131,14 @@ services:
 
   owasp-zap:
     image: owasp/zap2docker-stable
-    container_name: ritmo-owasp-zap
-    command: zap.sh -daemon -host 0.0.0.0 -port 8080 -config api.addrs.addr.name=.* -config api.addrs.addr.regex=true -config api.key=ritmo-zap-api-key
+    container_name: solvyd-owasp-zap
+    command: zap.sh -daemon -host 0.0.0.0 -port 8080 -config api.addrs.addr.name=.* -config api.addrs.addr.regex=true -config api.key=solvyd-zap-api-key
     ports:
       - "8081:8080"
     volumes:
       - zap-data:/zap/wrk
     networks:
-      - ritmo-network
+      - solvyd-network
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8080"]
       interval: 30s
@@ -151,7 +151,7 @@ services:
 
   nexus:
     image: sonatype/nexus3:latest
-    container_name: ritmo-nexus
+    container_name: solvyd-nexus
     ports:
       - "8083:8081"
       - "8084:8082"  # Docker registry
@@ -160,7 +160,7 @@ services:
     environment:
       INSTALL4J_ADD_VM_PARAMS: "-Xms512m -Xmx512m -XX:MaxDirectMemorySize=273m"
     networks:
-      - ritmo-network
+      - solvyd-network
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8081/service/rest/v1/status"]
       interval: 30s
@@ -173,7 +173,7 @@ services:
 
   prometheus:
     image: prom/prometheus:latest
-    container_name: ritmo-prometheus
+    container_name: solvyd-prometheus
     ports:
       - "9091:9090"
     volumes:
@@ -185,7 +185,7 @@ services:
       - '--web.console.libraries=/usr/share/prometheus/console_libraries'
       - '--web.console.templates=/usr/share/prometheus/consoles'
     networks:
-      - ritmo-network
+      - solvyd-network
     healthcheck:
       test: ["CMD", "wget", "--spider", "-q", "http://localhost:9090/-/healthy"]
       interval: 30s
@@ -194,7 +194,7 @@ services:
 
   grafana:
     image: grafana/grafana:latest
-    container_name: ritmo-grafana
+    container_name: solvyd-grafana
     ports:
       - "3001:3000"
     environment:
@@ -205,7 +205,7 @@ services:
       - grafana-data:/var/lib/grafana
       - ./monitoring/grafana/provisioning:/etc/grafana/provisioning
     networks:
-      - ritmo-network
+      - solvyd-network
     depends_on:
       - prometheus
     healthcheck:
@@ -221,16 +221,16 @@ services:
   # Vault for secrets management (optional)
   vault:
     image: vault:latest
-    container_name: ritmo-vault
+    container_name: solvyd-vault
     ports:
       - "8200:8200"
     environment:
-      VAULT_DEV_ROOT_TOKEN_ID: ritmo-dev-token
+      VAULT_DEV_ROOT_TOKEN_ID: solvyd-dev-token
       VAULT_DEV_LISTEN_ADDRESS: 0.0.0.0:8200
     cap_add:
       - IPC_LOCK
     networks:
-      - ritmo-network
+      - solvyd-network
     healthcheck:
       test: ["CMD", "vault", "status"]
       interval: 30s
@@ -252,5 +252,5 @@ volumes:
   grafana-data:
 
 networks:
-  ritmo-network:
+  solvyd-network:
     driver: bridge

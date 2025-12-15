@@ -1,19 +1,19 @@
-# Ritmo API Server Configuration
+# Solvyd API Server Configuration
 port: 8080
 log_level: "info"
 
-database_url: "postgres://ritmo:ritmo_dev_password@localhost:5432/ritmo?sslmode=disable"
+database_url: "postgres://solvyd:solvyd_dev_password@localhost:5432/solvyd?sslmode=disable"
 
 # GitOps Configuration
 gitops:
   enabled: false  # Set to true to enable GitOps mode
   repository:
-    url: ""  # https://github.com/myorg/ritmo-config
+    url: ""  # https://github.com/myorg/solvyd-config
     branch: "main"
     path: "/"
   authentication:
     type: "token"  # token, ssh, github_app
-    token: ""  # Use environment variable: ${RITMO_GITOPS_TOKEN}
+    token: ""  # Use environment variable: ${SOLVYD_GITOPS_TOKEN}
   sync:
     interval: 60  # seconds
     auto_apply: true
@@ -34,9 +34,9 @@ plugin_directory: "./plugins"
 artifact_storage_type: "s3"
 artifact_storage_config:
   endpoint: "http://localhost:9000"
-  access_key: "ritmo"
-  secret_key: "ritmo_minio_password"
-  bucket: "ritmo-artifacts"
+  access_key: "solvyd"
+  secret_key: "solvyd_minio_password"
+  bucket: "solvyd-artifacts"
   region: "us-east-1"
 
 jwt_secret: "dev-secret-change-in-production"

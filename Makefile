@@ -1,7 +1,7 @@
 .PHONY: help dev clean stop logs
 
 help: ## Show this help message
-	@echo 'Ritmo CI/CD Platform - Quick Start'
+	@echo 'Solvyd CI/CD Platform - Quick Start'
 	@echo ''
 	@echo 'Usage: make [target]'
 	@echo ''
@@ -9,13 +9,13 @@ help: ## Show this help message
 	@awk 'BEGIN {FS = ":.*?## "} /^[a-zA-Z_-]+:.*?## / {printf "  %-15s %s\n", $$1, $$2}' $(MAKEFILE_LIST)
 
 dev: ## Start complete development environment
-	@echo "🚀 Starting Ritmo development environment..."
+	@echo "🚀 Starting Solvyd development environment..."
 	@docker-compose up -d
 	@echo "⏳ Waiting for services to be ready..."
 	@sleep 10
 	@echo "📊 Initializing database..."
-	@PGPASSWORD=ritmo_dev_password psql -h localhost -U ritmo -d ritmo -f database/schema.sql 2>/dev/null || true
-	@PGPASSWORD=ritmo_dev_password psql -h localhost -U ritmo -d ritmo -f database/seed.sql 2>/dev/null || true
+	@PGPASSWORD=solvyd_dev_password psql -h localhost -U ritmo -d ritmo -f database/schema.sql 2>/dev/null || true
+	@PGPASSWORD=solvyd_dev_password psql -h localhost -U ritmo -d ritmo -f database/seed.sql 2>/dev/null || true
 	@echo ""
 	@echo "✅ Development environment ready!"
 	@echo ""

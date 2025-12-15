@@ -9,8 +9,8 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/rs/zerolog/log"
 
-	"github.com/vrenjith/ritmo/api-server/internal/database"
-	"github.com/vrenjith/ritmo/api-server/internal/models"
+	"github.com/solvyd/solvyd/api-server/internal/database"
+	"github.com/solvyd/solvyd/api-server/internal/models"
 )
 
 // BuildHandler handles build-related requests

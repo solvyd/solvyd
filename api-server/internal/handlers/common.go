@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"net/http"
 
-	"github.com/vrenjith/ritmo/api-server/internal/database"
+	"github.com/solvyd/solvyd/api-server/internal/database"
 )
 
 // HealthCheck handles health check requests

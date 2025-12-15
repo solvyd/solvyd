@@ -1,4 +1,4 @@
-# Ritmo Worker Agent
+# Solvyd Worker Agent
 
 The worker agent runs on worker nodes and executes CI/CD builds.
 
@@ -72,10 +72,10 @@ internal/
 
 ```bash
 # Build
-go build -o bin/ritmo-agent cmd/agent/main.go
+go build -o bin/solvyd-agent cmd/agent/main.go
 
 # Run
-./bin/ritmo-agent --api-server=localhost:8080
+./bin/solvyd-agent --api-server=localhost:8080
 ```
 
 ## Next Steps

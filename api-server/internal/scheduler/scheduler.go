@@ -8,9 +8,9 @@ import (
 	"github.com/google/uuid"
 	"github.com/rs/zerolog/log"
 
-	"github.com/vrenjith/ritmo/api-server/internal/database"
-	"github.com/vrenjith/ritmo/api-server/internal/metrics"
-	"github.com/vrenjith/ritmo/api-server/internal/worker"
+	"github.com/solvyd/solvyd/api-server/internal/database"
+	"github.com/solvyd/solvyd/api-server/internal/metrics"
+	"github.com/solvyd/solvyd/api-server/internal/worker"
 )
 
 // Scheduler handles job scheduling and build assignment

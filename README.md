@@ -1,6 +1,6 @@
-# Ritmo - Next-Generation CI/CD Platform
+# Solvyd - Next-Generation CI/CD Platform
 
-Ritmo is a highly scalable, plugin-based CI/CD platform designed to overcome the limitations of traditional single-controller systems like Jenkins.
+Solvyd is a highly scalable, plugin-based CI/CD platform designed to overcome the limitations of traditional single-controller systems like Jenkins.
 
 ## Architecture
 
@@ -80,33 +80,42 @@ Ritmo is a highly scalable, plugin-based CI/CD platform designed to overcome the
 ## Quick Start
 
 ```bash
-# Start the infrastructure (PostgreSQL, Redis)
+# Clone repository
+git clone https://github.com/solvyd/solvyd.git
+cd solvyd
+
+# Start the infrastructure
 docker-compose up -d
 
 # Start API server
 cd api-server
 go run cmd/server/main.go
 
-# Start worker agent
+# Start worker agent (new terminal)
 cd worker-agent
-go run cmd/agent/main.go --api-server=localhost:9090
+go run cmd/agent/main.go --api-server=localhost:8080
 
-# Start web UI
+# Start web UI (new terminal)
 cd web-ui
 npm install
 npm run dev
 ```
 
-## Documentation
+Access at:
+- **Web UI**: http://localhost:3000
+- **API**: http://localhost:8080
+- **Grafana**: http://localhost:3001
 
-- [Getting Started Guide](GETTING_STARTED.md)
-- [Architecture Overview](ARCHITECTURE.md)
-- [Enterprise Security & Quality Gates](docs/ENTERPRISE-SECURITY.md)
-- [GitOps Configuration](docs/GITOPS-CONFIG.md)
-- [CI/CD Separation Pattern](docs/CI-CD-SEPARATION.md)
-- [Plugin Development](plugin-sdk/README.md)
-- [API Documentation](api-server/README.md)
-- [Worker Agent Setup](worker-agent/README.md)
+## 📖 Documentation
+
+**Complete documentation available at**: **https://solvyd.github.io**
+
+- [Quick Start Guide](https://solvyd.github.io/getting-started/quickstart/)
+- [Installation Guide](https://solvyd.github.io/getting-started/installation/)
+- [Architecture Overview](https://solvyd.github.io/architecture/overview/)
+- [Plugin Development](https://solvyd.github.io/plugins/introduction/)
+- [Enterprise Security](https://solvyd.github.io/security/overview/)
+- [API Reference](https://solvyd.github.io/api-reference/rest-api/)
 
 ## Project Status
 

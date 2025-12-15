@@ -14,8 +14,8 @@ import (
 	"github.com/google/uuid"
 	"github.com/rs/zerolog/log"
 
-	"github.com/vrenjith/ritmo/worker-agent/internal/config"
-	"github.com/vrenjith/ritmo/worker-agent/internal/executor"
+	"github.com/solvyd/solvyd/worker-agent/internal/config"
+	"github.com/solvyd/solvyd/worker-agent/internal/executor"
 )
 
 // Agent represents the worker agent

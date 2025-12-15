@@ -3,8 +3,8 @@ package handlers
 import (
 	"net/http"
 
-	"github.com/vrenjith/ritmo/api-server/internal/database"
-	"github.com/vrenjith/ritmo/api-server/internal/scheduler"
+	"github.com/solvyd/solvyd/api-server/internal/database"
+	"github.com/solvyd/solvyd/api-server/internal/scheduler"
 )
 
 // WebhookHandler handles webhook requests from SCM providers

@@ -70,12 +70,12 @@ func Load() (*Config, error) {
 	viper.SetConfigType("yaml")
 	viper.AddConfigPath(".")
 	viper.AddConfigPath("./config")
-	viper.AddConfigPath("/etc/ritmo")
+	viper.AddConfigPath("/etc/solvyd")
 
 	// Set defaults
 	viper.SetDefault("port", 8080)
 	viper.SetDefault("log_level", "info")
-	viper.SetDefault("database_url", "postgres://ritmo:ritmo_dev_password@localhost:5432/ritmo?sslmode=disable")
+	viper.SetDefault("database_url", "postgres://solvyd:solvyd_dev_password@localhost:5432/solvyd?sslmode=disable")
 	viper.SetDefault("cors_allowed_origins", []string{"http://localhost:3000", "http://localhost:5173"})
 	viper.SetDefault("worker_heartbeat_timeout", 60)
 	viper.SetDefault("max_workers_per_job", 10)
@@ -97,7 +97,7 @@ func Load() (*Config, error) {
 
 	// Read from environment
 	viper.AutomaticEnv()
-	viper.SetEnvPrefix("RITMO")
+	viper.SetEnvPrefix("SOLVYD")
 	viper.BindEnv("gitops.enabled", "RITMO_GITOPS_ENABLED")
 	viper.BindEnv("gitops.repository.url", "RITMO_GITOPS_REPO_URL")
 	viper.BindEnv("gitops.repository.branch", "RITMO_GITOPS_REPO_BRANCH")

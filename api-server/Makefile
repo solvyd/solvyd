@@ -7,7 +7,7 @@ help: ## Show this help message
 	@awk 'BEGIN {FS = ":.*?## "} /^[a-zA-Z_-]+:.*?## / {printf "  %-15s %s\n", $$1, $$2}' $(MAKEFILE_LIST)
 
 build: ## Build the API server
-	go build -o bin/ritmo-server cmd/server/main.go
+	go build -o bin/solvyd-server cmd/server/main.go
 
 run: ## Run the API server
 	go run cmd/server/main.go
@@ -40,11 +40,11 @@ docker-clean: ## Stop and remove all containers and volumes
 
 db-migrate: ## Run database migrations
 	@echo "Running database migrations..."
-	PGPASSWORD=ritmo_dev_password psql -h localhost -U ritmo -d ritmo -f ../database/schema.sql
+	PGPASSWORD=solvyd_dev_password psql -h localhost -U ritmo -d ritmo -f ../database/schema.sql
 
 db-seed: ## Seed database with sample data
 	@echo "Seeding database..."
-	PGPASSWORD=ritmo_dev_password psql -h localhost -U ritmo -d ritmo -f ../database/seed.sql
+	PGPASSWORD=solvyd_dev_password psql -h localhost -U ritmo -d ritmo -f ../database/seed.sql
 
 dev: docker-up db-migrate db-seed ## Start development environment
 	@echo "Development environment ready!"

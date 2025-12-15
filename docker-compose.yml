@@ -3,25 +3,25 @@ version: '3.8'
 services:
   postgres:
     image: postgres:15-alpine
-    container_name: ritmo-postgres
+    container_name: solvyd-postgres
     environment:
-      POSTGRES_DB: ritmo
-      POSTGRES_USER: ritmo
-      POSTGRES_PASSWORD: ritmo_dev_password
+      POSTGRES_DB: solvyd
+      POSTGRES_USER: solvyd
+      POSTGRES_PASSWORD: solvyd_dev_password
     ports:
       - "5432:5432"
     volumes:
       - postgres-data:/var/lib/postgresql/data
       - ./database/migrations:/docker-entrypoint-initdb.d
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ritmo"]
+      test: ["CMD-SHELL", "pg_isready -U solvyd"]
       interval: 10s
       timeout: 5s
       retries: 5
 
   redis:
     image: redis:7-alpine
-    container_name: ritmo-redis
+    container_name: solvyd-redis
     ports:
       - "6379:6379"
     volumes:
@@ -35,7 +35,7 @@ services:
   # Prometheus for metrics
   prometheus:
     image: prom/prometheus:latest
-    container_name: ritmo-prometheus
+    container_name: solvyd-prometheus
     ports:
       - "9091:9090"
     volumes:
@@ -48,7 +48,7 @@ services:
   # Grafana for visualization
   grafana:
     image: grafana/grafana:latest
-    container_name: ritmo-grafana
+    container_name: solvyd-grafana
     ports:
       - "3001:3000"
     environment:
@@ -64,13 +64,13 @@ services:
   # MinIO for artifact storage (S3-compatible)
   minio:
     image: minio/minio:latest
-    container_name: ritmo-minio
+    container_name: solvyd-minio
     ports:
       - "9000:9000"
       - "9001:9001"
     environment:
-      MINIO_ROOT_USER: ritmo
-      MINIO_ROOT_PASSWORD: ritmo_minio_password
+      MINIO_ROOT_USER: solvyd
+      MINIO_ROOT_PASSWORD: solvyd_minio_password
     volumes:
       - minio-data:/data
     command: server /data --console-address ":9001"

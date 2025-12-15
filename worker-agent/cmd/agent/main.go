@@ -13,9 +13,9 @@ import (
 	"github.com/rs/zerolog/log"
 	flag "github.com/spf13/pflag"
 
-	"github.com/vrenjith/ritmo/worker-agent/internal/agent"
-	"github.com/vrenjith/ritmo/worker-agent/internal/config"
-	"github.com/vrenjith/ritmo/worker-agent/internal/executor"
+	"github.com/solvyd/solvyd/worker-agent/internal/agent"
+	"github.com/solvyd/solvyd/worker-agent/internal/config"
+	"github.com/solvyd/solvyd/worker-agent/internal/executor"
 )
 
 func main() {

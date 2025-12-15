@@ -1,6 +1,6 @@
-# Ritmo Web UI
+# Solvyd Web UI
 
-Modern React-based dashboard for Ritmo CI/CD platform.
+Modern React-based dashboard for Solvyd CI/CD platform.
 
 ## Features
 
