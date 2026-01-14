@@ -1,0 +1,111 @@
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: api-server-config
+  namespace: solvyd
+data:
+  config.yaml: |
+    server:
+      port: 8080
+      host: "0.0.0.0"
+      cors_origins:
+        - "http://localhost:3000"
+        - "http://localhost:5173"
+
+    database:
+      host: postgres
+      port: 5432
+      name: solvyd
+      user: solvyd
+      password: solvyd_dev_password
+      max_connections: 25
+      max_idle_connections: 5
+      connection_max_lifetime: 300
+
+    redis:
+      host: redis
+      port: 6379
+      db: 0
+
+    storage:
+      type: s3
+      endpoint: http://minio:9000
+      access_key: solvyd
+      secret_key: solvyd123
+      bucket: solvyd-artifacts
+      use_ssl: false
+
+    metrics:
+      enabled: true
+      path: /metrics
+
+    logging:
+      level: debug
+      format: json
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: api-server
+  namespace: solvyd
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: api-server
+  template:
+    metadata:
+      labels:
+        app: api-server
+    spec:
+      containers:
+      - name: api-server
+        image: solvyd/api-server:latest
+        imagePullPolicy: Never
+        ports:
+        - containerPort: 8080
+          name: http
+        volumeMounts:
+        - name: config
+          mountPath: /etc/solvyd
+        env:
+        - name: SOLVYD_CONFIG_PATH
+          value: /etc/solvyd/config.yaml
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 8080
+          initialDelaySeconds: 10
+          periodSeconds: 10
+        readinessProbe:
+          httpGet:
+            path: /ready
+            port: 8080
+          initialDelaySeconds: 5
+          periodSeconds: 5
+        resources:
+          requests:
+            memory: "256Mi"
+            cpu: "250m"
+          limits:
+            memory: "512Mi"
+            cpu: "500m"
+      volumes:
+      - name: config
+        configMap:
+          name: api-server-config
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: api-server
+  namespace: solvyd
+spec:
+  selector:
+    app: api-server
+  ports:
+  - port: 8080
+    targetPort: 8080
+    nodePort: 30080
+  type: NodePort

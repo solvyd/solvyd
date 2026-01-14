@@ -1,0 +1,50 @@
+# Git
+.git
+.gitignore
+.gitattributes
+
+# Documentation
+*.md
+docs/
+LICENSE
+
+# Development
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Build artifacts
+bin/
+dist/
+build/
+target/
+*.exe
+
+# Testing
+coverage/
+*.test
+test-results/
+
+# Dependencies (will be downloaded during build)
+vendor/
+
+# Kubernetes
+k8s/
+*.yaml
+*.yml
+
+# Docker
+docker-compose*.yml
+Dockerfile*
+.dockerignore
+
+# CI/CD
+.github/
+.gitlab-ci.yml
+
+# Misc
+tmp/
+temp/
+*.log

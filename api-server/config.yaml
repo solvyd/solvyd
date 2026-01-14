@@ -2,7 +2,7 @@
 port: 8080
 log_level: "info"
 
-database_url: "postgres://solvyd:solvyd_dev_password@localhost:5432/solvyd?sslmode=disable"
+database_url: "postgres://solvyd:solvyd_dev_password@postgres:5432/solvyd?sslmode=disable"
 
 # GitOps Configuration
 gitops:

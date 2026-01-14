@@ -27,7 +27,7 @@ func main() {
 	zerolog.TimeFieldFormat = zerolog.TimeFormatUnix
 	log.Logger = log.Output(zerolog.ConsoleWriter{Out: os.Stderr, TimeFormat: time.RFC3339})
 
-	log.Info().Msg("Starting Ritmo API Server")
+	log.Info().Msg("Starting Solvyd API Server")
 
 	// Load configuration
 	cfg, err := config.Load()
@@ -88,13 +88,17 @@ func main() {
 	apiV1.HandleFunc("/builds/{id}/cancel", buildHandler.CancelBuild).Methods("POST")
 	apiV1.HandleFunc("/builds/{id}/logs", buildHandler.GetBuildLogs).Methods("GET")
 	apiV1.HandleFunc("/builds/{id}/artifacts", buildHandler.ListArtifacts).Methods("GET")
+	apiV1.HandleFunc("/builds/{id}/status", buildHandler.UpdateBuildStatus).Methods("PUT")
 
 	// Workers endpoints
 	workerHandler := handlers.NewWorkerHandler(db, workerMgr)
 	apiV1.HandleFunc("/workers", workerHandler.ListWorkers).Methods("GET")
+	apiV1.HandleFunc("/workers/register", workerHandler.RegisterWorker).Methods("POST")
 	apiV1.HandleFunc("/workers/{id}", workerHandler.GetWorker).Methods("GET")
 	apiV1.HandleFunc("/workers/{id}", workerHandler.UpdateWorker).Methods("PUT")
+	apiV1.HandleFunc("/workers/{id}/heartbeat", workerHandler.Heartbeat).Methods("POST")
 	apiV1.HandleFunc("/workers/{id}/drain", workerHandler.DrainWorker).Methods("POST")
+	apiV1.HandleFunc("/workers/{worker_id}/builds", buildHandler.GetWorkerBuilds).Methods("GET")
 
 	// Deployments endpoints
 	deploymentHandler := handlers.NewDeploymentHandler(db)

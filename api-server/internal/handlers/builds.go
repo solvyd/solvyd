@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"database/sql"
+	"encoding/json"
 	"net/http"
 	"strconv"
 
@@ -272,4 +273,171 @@ func (h *BuildHandler) ListArtifacts(w http.ResponseWriter, r *http.Request) {
 	}
 
 	SendJSON(w, http.StatusOK, artifacts)
+}
+
+// GetWorkerBuilds returns pending builds assigned to a specific worker
+func (h *BuildHandler) GetWorkerBuilds(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+	vars := mux.Vars(r)
+	workerID := vars["worker_id"]
+
+	// Validate worker ID
+	if _, err := uuid.Parse(workerID); err != nil {
+		SendError(w, http.StatusBadRequest, err, "Invalid worker ID")
+		return
+	}
+
+	query := `
+		SELECT b.id, b.job_id, b.build_number, b.status, b.queued_at, 
+		       b.scm_commit_sha, b.branch, b.triggered_by, b.build_config,
+		       j.name as job_name, j.scm_url, j.scm_type
+		FROM builds b
+		JOIN jobs j ON b.job_id = j.id
+		WHERE b.worker_id = $1 AND b.status = 'queued'
+		ORDER BY b.queued_at ASC
+		LIMIT 10
+	`
+
+	rows, err := h.db.GetConn().QueryContext(ctx, query, workerID)
+	if err != nil {
+		log.Error().Err(err).Str("worker_id", workerID).Msg("Failed to query worker builds")
+		SendError(w, http.StatusInternalServerError, err, "Failed to fetch builds")
+		return
+	}
+	defer rows.Close()
+
+	builds := []map[string]interface{}{}
+	for rows.Next() {
+		var build models.Build
+		var jobName, scmURL, scmType string
+		var buildConfig models.JSONB
+
+		err := rows.Scan(
+			&build.ID, &build.JobID, &build.BuildNumber, &build.Status,
+			&build.QueuedAt, &build.CommitSHA, &build.Branch,
+			&build.TriggeredBy, &buildConfig, &jobName, &scmURL, &scmType,
+		)
+		if err != nil {
+			log.Warn().Err(err).Msg("Failed to scan build row")
+			continue
+		}
+
+		buildMap := map[string]interface{}{
+			"id":           build.ID,
+			"job_id":       build.JobID,
+			"job_name":     jobName,
+			"build_number": build.BuildNumber,
+			"status":       build.Status,
+			"queued_at":    build.QueuedAt,
+			"commit_sha":   build.CommitSHA,
+			"branch":       build.Branch,
+			"triggered_by": build.TriggeredBy,
+			"build_config": buildConfig,
+			"scm_url":      scmURL,
+			"scm_type":     scmType,
+		}
+
+		builds = append(builds, buildMap)
+	}
+
+	SendJSON(w, http.StatusOK, builds)
+}
+
+// UpdateBuildStatus updates the status and details of a build
+func (h *BuildHandler) UpdateBuildStatus(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+	vars := mux.Vars(r)
+	buildID := vars["id"]
+
+	// Validate build ID
+	if _, err := uuid.Parse(buildID); err != nil {
+		SendError(w, http.StatusBadRequest, err, "Invalid build ID")
+		return
+	}
+
+	var req struct {
+		Status       string  `json:"status"`
+		StartedAt    *string `json:"started_at,omitempty"`
+		CompletedAt  *string `json:"completed_at,omitempty"`
+		ExitCode     *int    `json:"exit_code,omitempty"`
+		ErrorMessage *string `json:"error_message,omitempty"`
+		Duration     *int    `json:"duration_seconds,omitempty"`
+	}
+
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		SendError(w, http.StatusBadRequest, err, "Invalid request body")
+		return
+	}
+
+	// Validate status
+	validStatuses := map[string]bool{
+		"queued": true, "running": true, "success": true,
+		"failure": true, "cancelled": true,
+	}
+	if !validStatuses[req.Status] {
+		SendError(w, http.StatusBadRequest, nil, "Invalid status value")
+		return
+	}
+
+	// Build dynamic update query
+	query := `UPDATE builds SET status = $1, updated_at = NOW()`
+	args := []interface{}{req.Status}
+	argCount := 2
+
+	if req.StartedAt != nil {
+		query += `, started_at = $` + strconv.Itoa(argCount)
+		args = append(args, req.StartedAt)
+		argCount++
+	}
+
+	if req.CompletedAt != nil {
+		query += `, completed_at = $` + strconv.Itoa(argCount)
+		args = append(args, req.CompletedAt)
+		argCount++
+	}
+
+	if req.ExitCode != nil {
+		query += `, exit_code = $` + strconv.Itoa(argCount)
+		args = append(args, req.ExitCode)
+		argCount++
+	}
+
+	if req.ErrorMessage != nil {
+		query += `, error_message = $` + strconv.Itoa(argCount)
+		args = append(args, req.ErrorMessage)
+		argCount++
+	}
+
+	if req.Duration != nil {
+		query += `, duration_seconds = $` + strconv.Itoa(argCount)
+		args = append(args, req.Duration)
+		argCount++
+	}
+
+	query += ` WHERE id = $` + strconv.Itoa(argCount)
+	args = append(args, buildID)
+
+	result, err := h.db.GetConn().ExecContext(ctx, query, args...)
+	if err != nil {
+		log.Error().Err(err).Str("build_id", buildID).Msg("Failed to update build status")
+		SendError(w, http.StatusInternalServerError, err, "Failed to update build")
+		return
+	}
+
+	rowsAffected, _ := result.RowsAffected()
+	if rowsAffected == 0 {
+		SendError(w, http.StatusNotFound, nil, "Build not found")
+		return
+	}
+
+	log.Info().
+		Str("build_id", buildID).
+		Str("status", req.Status).
+		Msg("Build status updated")
+
+	SendJSON(w, http.StatusOK, map[string]interface{}{
+		"message":  "Build status updated successfully",
+		"build_id": buildID,
+		"status":   req.Status,
+	})
 }

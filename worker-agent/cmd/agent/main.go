@@ -25,12 +25,12 @@ func main() {
 
 	// Command-line flags
 	var (
-		apiServer     = flag.String("api-server", "localhost:8080", "API server address")
-		workerName    = flag.String("name", "", "Worker name (defaults to hostname)")
-		maxConcurrent = flag.Int("max-concurrent", 2, "Maximum concurrent builds")
+		apiServer     = flag.String("api-server", getEnv("SOLVYD_API_URL", "http://localhost:8080"), "API server address")
+		workerName    = flag.String("name", getEnv("SOLVYD_WORKER_NAME", ""), "Worker name (defaults to hostname)")
+		maxConcurrent = flag.Int("max-concurrent", getEnvInt("SOLVYD_MAX_CONCURRENT_BUILDS", 2), "Maximum concurrent builds")
 		labels        = flag.StringSlice("label", []string{}, "Worker labels (key=value)")
-		logLevel      = flag.String("log-level", "info", "Log level (debug, info, warn, error)")
-		isolationType = flag.String("isolation", "docker", "Build isolation type (docker, process, vm)")
+		logLevel      = flag.String("log-level", getEnv("SOLVYD_LOG_LEVEL", "info"), "Log level (debug, info, warn, error)")
+		isolationType = flag.String("isolation", getEnv("SOLVYD_ISOLATION", "docker"), "Build isolation type (docker, process, vm)")
 	)
 
 	flag.Parse()
@@ -42,7 +42,7 @@ func main() {
 	}
 	zerolog.SetGlobalLevel(level)
 
-	log.Info().Msg("Starting Ritmo Worker Agent")
+	log.Info().Msg("Starting Solvyd Worker Agent")
 
 	// Generate or use worker name
 	if *workerName == "" {
@@ -96,4 +96,22 @@ func main() {
 	time.Sleep(5 * time.Second)
 
 	log.Info().Msg("Worker agent exited")
+}
+
+// getEnv gets environment variable with a default value
+func getEnv(key, defaultValue string) string {
+	if value := os.Getenv(key); value != "" {
+		return value
+	}
+	return defaultValue
+}
+
+// getEnvInt gets environment variable as int with a default value
+func getEnvInt(key string, defaultValue int) int {
+	if value := os.Getenv(key); value != "" {
+		if intVal, err := fmt.Sscanf(value, "%d", &defaultValue); err == nil && intVal == 1 {
+			return defaultValue
+		}
+	}
+	return defaultValue
 }

@@ -2,6 +2,26 @@
 
 Solvyd is a highly scalable, plugin-based CI/CD platform designed to overcome the limitations of traditional single-controller systems like Jenkins.
 
+🚧 **Status**: Active Development - Core build execution pipeline implemented  
+📊 **Progress**: ~25% complete - See [IMPLEMENTATION_PROGRESS.md](./IMPLEMENTATION_PROGRESS.md)  
+🎯 **Target**: MVP in 2 weeks, Production launch in 6 weeks
+
+## 🎉 What's Working Now
+
+✅ **Worker Registration & Heartbeat** - Workers self-register and maintain heartbeat  
+✅ **Docker-based Build Execution** - Full Docker container execution with git cloning  
+✅ **Build Polling & Assignment** - Workers fetch and execute assigned builds  
+✅ **Status Reporting** - Real-time build status updates to API server  
+✅ **Kubernetes Deployment** - Complete k8s manifests with Skaffold hot-reload  
+✅ **Comprehensive Documentation** - Full docs at [solvyd-docs](../solvyd-docs)
+
+## 📚 Quick Links
+
+- **[Implementation Progress](./IMPLEMENTATION_PROGRESS.md)** - Detailed status and next steps
+- **[Quick Start Guide](./QUICKSTART.md)** - Testing current implementation
+- **[Full Documentation](../solvyd-docs/docs/)** - Architecture, guides, deployment, API reference
+- **[Getting Started Guide](../solvyd-docs/docs/getting-started/)** - Setup instructions
+
 ## Architecture
 
 ### Core Components
@@ -79,32 +99,83 @@ Solvyd is a highly scalable, plugin-based CI/CD platform designed to overcome th
 
 ## Quick Start
 
+### Prerequisites
+
+- **Kubernetes cluster** (minikube, kind, or Docker Desktop with Kubernetes enabled)
+- **kubectl** installed and configured
+- **Docker** for building images
+- **Skaffold** (optional, for hot-reload development)
+
+### Option 1: Quick Setup (Recommended)
+
 ```bash
 # Clone repository
 git clone https://github.com/solvyd/solvyd.git
 cd solvyd
 
-# Start the infrastructure
-docker-compose up -d
+# Setup complete environment on Kubernetes
+make dev
+```
 
-# Start API server
-cd api-server
-go run cmd/server/main.go
+This will:
+- Create the `solvyd` namespace
+- Deploy PostgreSQL, Redis, MinIO, Prometheus, and Grafana
+- Build and deploy API server, worker agents, and web UI
+- Initialize the database with schema and seed data
+- Expose services via NodePort
 
-# Start worker agent (new terminal)
-cd worker-agent
-go run cmd/agent/main.go --api-server=localhost:8080
+### Option 2: Development with Hot-Reload (Skaffold)
 
-# Start web UI (new terminal)
-cd web-ui
-npm install
-npm run dev
+```bash
+# Install Skaffold if not already installed
+# macOS: brew install skaffold
+# Linux: curl -Lo skaffold https://storage.googleapis.com/skaffold/releases/latest/skaffold-linux-amd64 && chmod +x skaffold && sudo mv skaffold /usr/local/bin
+
+# Start development mode with auto-rebuild on file changes
+make dev-skaffold
+```
+
+### Option 3: Manual Kubernetes Deployment
+
+```bash
+# Build Docker images
+docker build -t solvyd/api-server:latest ./api-server
+docker build -t solvyd/worker-agent:latest ./worker-agent
+docker build -t solvyd/web-ui:latest ./web-ui
+
+# Load images to cluster (for minikube)
+minikube image load solvyd/api-server:latest
+minikube image load solvyd/worker-agent:latest
+minikube image load solvyd/web-ui:latest
+
+# Deploy to Kubernetes
+make k8s-deploy
 ```
 
 Access at:
-- **Web UI**: http://localhost:3000
-- **API**: http://localhost:8080
-- **Grafana**: http://localhost:3001
+- **Web UI**: http://localhost:30000
+- **API**: http://localhost:30080
+- **Grafana**: `kubectl port-forward -n solvyd svc/grafana 3001:3000` then http://localhost:3001
+- **MinIO Console**: `kubectl port-forward -n solvyd svc/minio 9001:9001` then http://localhost:9001
+
+### Useful Commands
+
+```bash
+# View logs
+make logs              # API server logs
+make logs-worker       # Worker agent logs
+
+# Check status
+make status            # Show all pod statuses
+kubectl get all -n solvyd
+
+# Port forward services
+kubectl port-forward -n solvyd svc/grafana 3001:3000
+kubectl port-forward -n solvyd svc/minio 9001:9001
+
+# Clean up
+make clean             # Delete all resources
+```
 
 ## 📖 Documentation
 
@@ -112,6 +183,8 @@ Access at:
 
 - [Quick Start Guide](https://solvyd.github.io/getting-started/quickstart/)
 - [Installation Guide](https://solvyd.github.io/getting-started/installation/)
+- [Kubernetes Setup Guide](https://solvyd.github.io/deployment/kubernetes-setup/)
+- [Kubernetes Quick Reference](https://solvyd.github.io/deployment/kubernetes-quickref/)
 - [Architecture Overview](https://solvyd.github.io/architecture/overview/)
 - [Plugin Development](https://solvyd.github.io/plugins/introduction/)
 - [Enterprise Security](https://solvyd.github.io/security/overview/)
@@ -128,7 +201,8 @@ Access at:
 - **Frontend**: React 18 + TypeScript + Vite
 - **Communication**: gRPC + Protocol Buffers
 - **Containerization**: Docker
-- **Orchestration**: Kubernetes (optional)
+- **Orchestration**: Kubernetes
+- **Development Tools**: Skaffold, Kustomize
 
 ## License
 

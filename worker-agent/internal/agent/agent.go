@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"os"
 	"runtime"
+	"strings"
 	"time"
 
 	"github.com/google/uuid"
@@ -42,7 +43,11 @@ func NewAgent(cfg *config.Config, exec executor.Executor) (*Agent, error) {
 		Timeout: 30 * time.Second,
 	}
 
-	apiURL := fmt.Sprintf("http://%s", cfg.APIServer)
+	// Use API server URL directly if it already has a scheme, otherwise add http://
+	apiURL := cfg.APIServer
+	if !strings.HasPrefix(apiURL, "http://") && !strings.HasPrefix(apiURL, "https://") {
+		apiURL = "http://" + apiURL
+	}
 
 	return &Agent{
 		config:   cfg,
@@ -171,6 +176,23 @@ func (a *Agent) sendHeartbeat(ctx context.Context) error {
 	}
 	defer resp.Body.Close()
 
+	if resp.StatusCode != http.StatusOK {
+		return fmt.Errorf("heartbeat failed with status %d", resp.StatusCode)
+	}
+
+	// Parse response to check for work
+	var result map[string]interface{}
+	if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
+		return err
+	}
+
+	// Check if there's work available
+	if hasWork, ok := result["has_work"].(bool); ok && hasWork {
+		log.Debug().Msg("Work available for this worker")
+		// Trigger immediate poll
+		go a.checkForBuilds(ctx)
+	}
+
 	log.Debug().Msg("Heartbeat sent")
 	return nil
 }
@@ -198,10 +220,166 @@ func (a *Agent) checkForBuilds(ctx context.Context) {
 		return
 	}
 
-	// In a real implementation, this would query the API server
-	// for builds assigned to this worker
-	// For now, this is a stub
-	log.Debug().Msg("Checking for builds...")
+	// Fetch builds assigned to this worker
+	url := fmt.Sprintf("%s/api/v1/workers/%s/builds", a.apiURL, a.workerID.String())
+
+	req, err := http.NewRequestWithContext(ctx, "GET", url, nil)
+	if err != nil {
+		log.Error().Err(err).Msg("Failed to create builds request")
+		return
+	}
+
+	resp, err := a.client.Do(req)
+	if err != nil {
+		log.Error().Err(err).Msg("Failed to fetch builds")
+		return
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		log.Warn().Int("status", resp.StatusCode).Msg("Failed to fetch builds")
+		return
+	}
+
+	var builds []map[string]interface{}
+	if err := json.NewDecoder(resp.Body).Decode(&builds); err != nil {
+		log.Error().Err(err).Msg("Failed to decode builds response")
+		return
+	}
+
+	if len(builds) == 0 {
+		log.Debug().Msg("No pending builds")
+		return
+	}
+
+	log.Info().Int("count", len(builds)).Msg("Found pending builds")
+
+	// Execute builds (up to max concurrent limit)
+	for _, buildData := range builds {
+		if a.currentBuilds >= a.config.MaxConcurrent {
+			log.Warn().Msg("Max concurrent builds reached, stopping")
+			break
+		}
+
+		a.currentBuilds++
+		go a.executeBuild(ctx, buildData)
+	}
+}
+
+// executeBuild executes a single build
+func (a *Agent) executeBuild(ctx context.Context, buildData map[string]interface{}) {
+	defer func() {
+		a.currentBuilds--
+	}()
+
+	buildID := buildData["id"].(string)
+	log.Info().Str("build_id", buildID).Msg("Starting build execution")
+
+	// Update build status to running
+	if err := a.updateBuildStatus(ctx, buildID, "running", map[string]interface{}{
+		"started_at": time.Now().Format(time.RFC3339),
+	}); err != nil {
+		log.Error().Err(err).Str("build_id", buildID).Msg("Failed to update build status to running")
+	}
+
+	// Extract build information
+	buildConfig := buildData["build_config"].(map[string]interface{})
+
+	buildRequest := &executor.BuildRequest{
+		BuildID:     buildID,
+		SCMURL:      buildData["scm_url"].(string),
+		SCMBranch:   getStringOrEmpty(buildData, "branch"),
+		CommitSHA:   getStringOrEmpty(buildData, "commit_sha"),
+		BuildConfig: buildConfig,
+		EnvVars:     make(map[string]string),
+	}
+
+	// Execute the build
+	result, err := a.executor.Execute(ctx, buildRequest)
+
+	// Update build status based on result
+	status := "success"
+	statusData := map[string]interface{}{
+		"completed_at":     time.Now().Format(time.RFC3339),
+		"duration_seconds": result.Duration,
+	}
+
+	if err != nil || !result.Success {
+		status = "failure"
+		statusData["exit_code"] = result.ExitCode
+		if result.ErrorMessage != "" {
+			statusData["error_message"] = result.ErrorMessage
+		}
+		log.Error().
+			Err(err).
+			Str("build_id", buildID).
+			Int("exit_code", result.ExitCode).
+			Msg("Build failed")
+	} else {
+		log.Info().
+			Str("build_id", buildID).
+			Int("duration", result.Duration).
+			Msg("Build completed successfully")
+	}
+
+	// Update final build status
+	if err := a.updateBuildStatus(ctx, buildID, status, statusData); err != nil {
+		log.Error().Err(err).Str("build_id", buildID).Msg("Failed to update final build status")
+	}
+
+	// TODO: Upload logs to API server
+	// TODO: Upload artifacts to storage (MinIO/S3)
+
+	// Cleanup
+	if err := a.executor.Cleanup(ctx, buildID); err != nil {
+		log.Warn().Err(err).Str("build_id", buildID).Msg("Failed to cleanup build resources")
+	}
+}
+
+// updateBuildStatus updates the status of a build
+func (a *Agent) updateBuildStatus(ctx context.Context, buildID string, status string, data map[string]interface{}) error {
+	url := fmt.Sprintf("%s/api/v1/builds/%s/status", a.apiURL, buildID)
+
+	payload := map[string]interface{}{
+		"status": status,
+	}
+	for k, v := range data {
+		payload[k] = v
+	}
+
+	body, err := json.Marshal(payload)
+	if err != nil {
+		return err
+	}
+
+	req, err := http.NewRequestWithContext(ctx, "PUT", url, bytes.NewBuffer(body))
+	if err != nil {
+		return err
+	}
+
+	req.Header.Set("Content-Type", "application/json")
+
+	resp, err := a.client.Do(req)
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		return fmt.Errorf("status update failed with code %d", resp.StatusCode)
+	}
+
+	return nil
+}
+
+// getStringOrEmpty safely extracts string from map
+func getStringOrEmpty(m map[string]interface{}, key string) string {
+	if val, ok := m[key]; ok {
+		if str, ok := val.(string); ok {
+			return str
+		}
+	}
+	return ""
 }
 
 // getOutboundIP gets the preferred outbound IP of this machine

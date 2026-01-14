@@ -1,0 +1,82 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: worker-agent
+  namespace: solvyd
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: worker-agent
+  template:
+    metadata:
+      labels:
+        app: worker-agent
+    spec:
+      serviceAccountName: solvyd-worker
+      containers:
+      - name: worker-agent
+        image: solvyd/worker-agent:latest
+        imagePullPolicy: Never
+        env:
+        - name: SOLVYD_API_URL
+          value: http://api-server:8080
+        - name: SOLVYD_WORKER_NAME
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.name
+        - name: SOLVYD_WORKER_LABELS
+          value: "executor=kubernetes,env=dev"
+        - name: SOLVYD_ISOLATION
+          value: "docker"
+        - name: SOLVYD_MAX_CONCURRENT_BUILDS
+          value: "2"
+        volumeMounts:
+        - name: docker-sock
+          mountPath: /var/run/docker.sock
+        resources:
+          requests:
+            memory: "512Mi"
+            cpu: "500m"
+          limits:
+            memory: "2Gi"
+            cpu: "2000m"
+      volumes:
+      - name: docker-sock
+        hostPath:
+          path: /var/run/docker.sock
+          type: Socket
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: solvyd-worker
+  namespace: solvyd
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: solvyd-worker-role
+  namespace: solvyd
+rules:
+- apiGroups: [""]
+  resources: ["pods", "pods/log"]
+  verbs: ["get", "list", "create", "delete"]
+- apiGroups: ["batch"]
+  resources: ["jobs"]
+  verbs: ["get", "list", "create", "delete"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: solvyd-worker-rolebinding
+  namespace: solvyd
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: solvyd-worker-role
+subjects:
+- kind: ServiceAccount
+  name: solvyd-worker
+  namespace: solvyd

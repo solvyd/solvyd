@@ -1,0 +1,57 @@
+apiVersion: skaffold/v4beta11
+kind: Config
+metadata:
+  name: solvyd
+
+build:
+  artifacts:
+  - image: solvyd/api-server
+    context: api-server
+    custom:
+      buildCommand: docker build -t $IMAGE .
+  - image: solvyd/worker-agent
+    context: worker-agent
+    custom:
+      buildCommand: docker build -t $IMAGE .
+  - image: solvyd/web-ui
+    context: web-ui
+    custom:
+      buildCommand: docker build -t $IMAGE .
+  local:
+    push: false
+    concurrency: 1
+
+manifests:
+  rawYaml:
+  - k8s/namespace.yaml
+  - k8s/postgres.yaml
+  - k8s/redis.yaml
+  - k8s/minio.yaml
+  - k8s/prometheus.yaml
+  - k8s/grafana.yaml
+  - k8s/api-server.yaml
+  - k8s/worker-agent.yaml
+  - k8s/web-ui.yaml
+  - k8s/ingress.yaml
+
+portForward:
+- resourceType: service
+  resourceName: web-ui
+  namespace: solvyd
+  port: 80
+  localPort: 3000
+- resourceType: service
+  resourceName: api-server
+  namespace: solvyd
+  port: 8080
+  localPort: 8080
+- resourceType: service
+  resourceName: grafana
+  namespace: solvyd
+  port: 3000
+  localPort: 3001
+- resourceType: service
+  resourceName: minio
+  namespace: solvyd
+  port: 9001
+  localPort: 9001
